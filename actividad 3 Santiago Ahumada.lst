@@ -1,0 +1,190 @@
+---------------------------------------------
+OSHONSOFT Z80 ASSEMBLER LISTING
+Line   Addr Opcode      Label   Instruction
+---------------------------------------------
+0001   0000             	org 0h
+0002   0000             begin:
+0003   0000 31 FF 27    	ld sp,27ffh
+0004   0003 3E 89       	ld a,89h
+0005   0005 D3 03       	out (cw),a
+0006   0007 21 01 20    	ld hl,text1
+0007   000A CD 4D 00    	call disp_text1
+0008   000D 21 16 20    	ld hl,text2
+0009   0010 CD 5A 00    	call disp_text2
+0010   0013 CD 75 00    	call rand_8
+0011   0016 47          	ld b,a
+0012   0017 21 00 00    	ld hl,0
+0013   001A 0E 64       	ld c,100
+0014   001C             
+0015   001C             divc:
+0016   001C 78          	ld a,b
+0017   001D             div_loop:
+0018   001D B9          	cp c
+0019   001E 38 04       	jr c,stopdiv
+0020   0020 91          	sub c
+0021   0021 2C          	inc l
+0022   0022 18 F9       	jr div_loop
+0023   0024             stopdiv:
+0024   0024 81          	add a,c
+0025   0025 47          	ld b,a
+0026   0026 CD 87 00    	call conv2ascii
+0027   0029 32 64 20    	ld (rdec_num),a
+0028   002C 21 64 20    	ld hl, rdec_num
+0029   002F CD 46 00    	call disp_rnum
+0030   0032 0E 0A       	ld c,10
+0031   0034 2E 00       	ld l,0
+0032   0036 18 E4       	jr divc
+0033   0038 78          	ld a,b
+0034   0039 CD 87 00    	call conv2ascii
+0035   003C 32 64 20    	ld (rdec_num),a
+0036   003F 21 64 20    	ld hl, rdec_num
+0037   0042 CD 46 00    	call disp_rnum
+0038   0045 C9          	ret
+0039   0046             disp_rnum:
+0040   0046 7E          	ld a,(hl)
+0041   0047 D3 01       	out (lcd),a
+0042   0049 23          	inc hl
+0043   004A C3 1C 00    	jp divc
+0044   004D             disp_text1:
+0045   004D 7E          	ld a,(hl)
+0046   004E FE 26       	cp '&'
+0047   0050 CA 59 00    	jp z, end1
+0048   0053 D3 01       	out (lcd),a
+0049   0055 23          	inc hl
+0050   0056 C3 4D 00    	jp disp_text1
+0051   0059             end1:
+0052   0059 C9          	ret
+0053   005A             disp_text2:
+0054   005A 7E          	ld a,(hl)
+0055   005B FE 26       	cp '&'
+0056   005D CA 59 00    	jp z, end1
+0057   0060 D3 01       	out (lcd),a
+0058   0062 23          	inc hl
+0059   0063 C3 5A 00    	jp disp_text2
+0060   0066             disp_qstn:
+0061   0066             disp_text3:
+0062   0066 21 29 20    	ld hl,text3
+0063   0069 7E          	ld a,(hl)
+0064   006A FE 26       	cp '&'
+0065   006C CA 59 00    	jp z, end1
+0066   006F D3 01       	out (lcd),a
+0067   0071 23          	inc hl
+0068   0072 C3 5A 00    	jp disp_text2
+0069   0075             
+0070   0075             	;rutina de numero aleatorio
+0071   0075             rand_8:
+0072   0075 3A 00 20    	ld a,(r_seed)	; carga la semilla en A
+0073   0078 E6 B8       	and #B8h		; mantiene los bits de no retorno
+0074   007A 37          	scf			; activa carry
+0075   007B E2 7F 00    	jp PO,no_clr	; si es par salta el clear
+0076   007E 3F          	ccf			; complementa el acarreo (lo limpia)
+0077   007F             no_clr:
+0078   007F 3A 00 20    	ld a,(r_seed)	; obtiene la semilla
+0079   0082 17          	rla			; rota el carry en el byte
+0080   0083 32 00 20    	ld (r_seed),a	; guarda la semilla para el siguiente numero aleatorio
+0081   0086 C9          	ret			; termina
+0082   0087             conv2ascii:
+0083   0087 C6 30       	add a, 30h
+0084   0089 C9          	ret
+0085   008A 7E          	ld a,(hl)
+0086   008B FE 26       	cp '&'
+0087   008D CA 59 00    	jp z, end1
+0088   0090 D3 01       	out (lcd),a
+0089   0092 23          	inc hl
+0090   0093 C3 5A 00    	jp disp_text2
+0091   0096             order:
+0092   0096 47          	ld b,a
+0093   0097 16 00       	ld d,0
+0094   0099 1E 00       	ld e,0
+0095   009B 2E 00       	ld l,0
+0096   009D 78          	ld a,b
+0097   009E FE 64       	cp 100
+0098   00A0 38 05       	jr c, centenas
+0099   00A2 D6 64       	sub 100
+0100   00A4 14          	inc d
+0101   00A5 18 EF       	jr order
+0102   00A7             centenas:
+0103   00A7 FE 0A       	cp 10
+0104   00A9 38 05       	jr c,decenas
+0105   00AB D6 0A       	sub 10
+0106   00AD 1C          	inc e
+0107   00AE 18 F7       	jr centenas
+0108   00B0             decenas:
+0109   00B0 6F          	ld l,a
+0110   00B1 7A          	ld a,d
+0111   00B2 BB          	cp e
+0112   00B3 30 03       	jr nc, noswapde
+0113   00B5 7A          	ld a,d
+0114   00B6 53          	ld d,e
+0115   00B7 5F          	ld e,a
+0116   00B8             noswapde:
+0117   00B8 7A          	ld a,d
+0118   00B9 BD          	cp l
+0119   00BA 30 03       	jr nc,noswapdl
+0120   00BC 7A          	ld a,d
+0121   00BD 55          	ld d,l
+0122   00BE 6F          	ld l,a
+0123   00BF             noswapdl:
+0124   00BF 7B          	ld a,e
+0125   00C0 BD          	cp l
+0126   00C1 30 03       	jr nc,noswapel
+0127   00C3 7B          	ld a,e
+0128   00C4 5D          	ld e,l
+0129   00C5 6F          	ld l,a
+0130   00C6             noswapel:
+0131   00C6 CD 66 00    	call disp_text3
+0132   00C9 7A          	ld a,d
+0133   00CA 32 67 20    	ld (s_num),a
+0134   00CD 21 67 20    	ld hl,s_num
+0135   00D0 CD 46 00    	call disp_rnum
+0136   00D3 7B          	ld a,e
+0137   00D4 32 67 20    	ld (s_num),a
+0138   00D7 21 67 20    	ld hl,s_num
+0139   00DA CD 46 00    	call disp_rnum
+0140   00DD 7B          	ld a,e
+0141   00DE 32 67 20    	ld (s_num),a
+0142   00E1 21 67 20    	ld hl,s_num
+0143   00E4 CD 46 00    	call disp_rnum
+0144   00E7 CD EB 00    	call another
+0145   00EA C9          	ret
+0146   00EB             another:
+0147   00EB DB 02       	in a,(keyb)
+0148   00ED FE 53       	cp 53h
+0149   00EF CA 00 00    	jp z, begin
+0150   00F2 76          	halt
+0151   00F3             	org 2000h ;segmento de varialbles
+0152   2000 01          r_seed	.db	1		; semilla para el proceso de numero pseudo aleatorio
+0153   2001 49 4E 49 43 text1	.db "INICIANDO GENERADOR &"
+0153   2005 49 41 4E 44 
+0153   2009 4F 20 47 45 
+0153   200D 4E 45 52 41 
+0153   2011 44 4F 52 20 
+0153   2015 26          
+0154   2016 4E 55 4D 45 text2	.db "NUMERO ALEATORIO: &"
+0154   201A 52 4F 20 41 
+0154   201E 4C 45 41 54 
+0154   2022 4F 52 49 4F 
+0154   2026 3A 20 26    
+0155   2029 4E 55 4D 45 text3	.db "NUMERO EN ORDEN NUMERICO: &"
+0155   202D 52 4F 20 45 
+0155   2031 4E 20 4F 52 
+0155   2035 44 45 4E 20 
+0155   2039 4E 55 4D 45 
+0155   203D 52 49 43 4F 
+0155   2041 3A 20 26    
+0156   2044 47 45 4E 45 qstn	.db "GENERAR NUEVO NUMERO ? S/N &"
+0156   2048 52 41 52 20 
+0156   204C 4E 55 45 56 
+0156   2050 4F 20 4E 55 
+0156   2054 4D 45 52 4F 
+0156   2058 20 3F 20 53 
+0156   205C 2F 4E 20 26 
+0157   2060 20 20       ans	.db "  "
+0158   2062 20 20       r_num	.db "  "
+0159   2064 20 20 20    rdec_num	.db "   "
+0160   2067 20 20 20    s_num	.db "   "
+0161   206A             lcd	.equ 1h ;configuracion de puertos
+0162   206A             keyb	.equ 2h
+0163   206A             cw	.equ 3h
+0164   206A             	.end
+Number of errors = 0
